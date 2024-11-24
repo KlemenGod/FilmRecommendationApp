@@ -1,5 +1,3 @@
-@file:JvmName("HomeScreenKt")
-
 package com.example.filmrecomendationapp.ui
 
 import FilmRecomendationViewModel

@@ -1,6 +1,9 @@
 package com.example.filmrecomendationapp.ui
 
 import FilmRecomendationViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +30,32 @@ import androidx.navigation.NavController
 import com.example.filmrecomendationapp.R
 import com.example.filmrecomendationapp.FilmRecomendationScreen
 import com.example.filmrecomendationapp.dataTypes.Movie
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 
+val exampleMovie = Movie("Example Movie", "Action", 4.5f, "https://xl.movieposterdb.com/24_09/2024/9218128/xl_gladiator-ii-movie-poster_c9934359.jpg")
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: FilmRecomendationViewModel = viewModel(),
                navController: NavController
@@ -36,65 +64,93 @@ fun HomeScreen(viewModel: FilmRecomendationViewModel = viewModel(),
     val uiState = viewModel.uiState.collectAsState().value
 
 
-    /*Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(R.string.title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
 
-        Spacer(modifier = Modifier.height(32.dp))
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
-        Text(
-            text = "${uiState.stepCount} / ${uiState.stepGoal} Steps",
-            fontSize = 28.sp,
-            color = Color.Blue,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LinearProgressIndicator(
-            progress = uiState.stepCount.toFloat() / uiState.stepGoal,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = Color.Blue
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Navigate to GoalScreen
-        Button(onClick = {navController.navigate(FilmRecomendationScreen.Goal.name)}) {
-            Text(text = stringResource(R.string.daily_goal))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Navigate to HistoryScreen
-        Button(onClick = {navController.navigate(FilmRecomendationScreen.History.name)}) {
-            Text(text = stringResource(R.string.history))
-        }
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text(
+                        "Films",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { /* do something */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* do something */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { innerPadding ->
+        ScrollContent(innerPadding)
+    }
 
 
-    }*/
 }
 
+@Composable
+fun ScrollContent(innerPadding: PaddingValues) {
+    val systemBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = innerPadding.calculateTopPadding())
+
+    ) {
+        Text(text = "Recommended Movies: ", fontSize = 24.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp))
+        LazyRow (modifier = Modifier.padding(3.dp)){ items(7){ MovieCard(exampleMovie)}}
+
+        Text(text = "Top rated: ", fontSize = 24.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp))
+        LazyRow (modifier = Modifier.padding(3.dp)){ items(7){ MovieCard(exampleMovie)}}
+
+        Text(text = "New releases: ", fontSize = 24.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp))
+        LazyRow (modifier = Modifier.padding(3.dp)){ items(7){ MovieCard(exampleMovie)}}
+
+    }
+}
 
 
 @Composable
 fun MovieCard(movie: Movie) {
-    Card(modifier = Modifier
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
+        modifier = Modifier
         .width(150.dp)
         .padding(8.dp)
     ) {
+//        Image(
+//        painter = rememberAsyncImagePainter("https://xl.movieposterdb.com/24_09/2024/9218128/xl_gladiator-ii-movie-poster_c9934359.jpg"),
+//        contentDescription = null,
+//        modifier = Modifier.fillMaxSize(),
+//        contentScale = ContentScale.Crop
+//    )
         Column {
+
             // Image(painter = rememberImagePainter(movie.posterUrl), contentDescription = null)
             Text(text = movie.title, modifier = Modifier.padding(8.dp))
             Text(text = movie.genre, modifier = Modifier.padding(8.dp))
