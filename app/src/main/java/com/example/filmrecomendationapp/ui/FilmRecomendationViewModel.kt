@@ -1,15 +1,21 @@
 import androidx.lifecycle.ViewModel
-import com.example.filmrecomendationapp.data.stepHistory
+import androidx.lifecycle.viewModelScope
+import com.example.filmrecomendationapp.data.FilmRepository
+import com.example.filmrecomendationapp.dataTypes.Movie
+import com.example.filmrecomendationapp.dataTypes.MoviePage
 import com.example.filmrecomendationapp.ui.FilmRecomendationUIState
 import com.example.filmrecomendationapp.ui.StepHistory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.filmrecomendationapp.network.getRequest
+import com.google.gson.Gson
 
-class FilmRecomendationViewModel : ViewModel() {
+class FilmRecomendationViewModel(private val repository: FilmRepository) : ViewModel() {
 
     // Holds the app's UI state
     private val _uiState = MutableStateFlow(FilmRecomendationUIState())
@@ -17,36 +23,51 @@ class FilmRecomendationViewModel : ViewModel() {
 
 
     init {
-        resetStepCounter()
+        loadInitialData()
     }
 
-    fun resetStepCounter() {
-        _uiState.value = FilmRecomendationUIState()
-    }
+    //Function to load initial data.
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            val watchedFilms = repository.getWatchedFilms()
+            val ratings = repository.getFilmRatings()
+            _uiState.update { currentState -> currentState.copy(watchedFilms = watchedFilms, ratings = ratings) }
+        }
 
-    // Function to update the step count (e.g., called when steps are detected)
-    fun updateStepCount(newSteps: Int) {
-        _uiState.update {
-                currentState -> currentState.copy(stepCount = newSteps)
+        getRequest {result ->
+            val gson = Gson()
+            val moviePage: MoviePage = gson.fromJson(result, MoviePage::class.java)
+            _uiState.update {
+                    currentState -> currentState.copy(movies = moviePage.results)
+            }
+
         }
     }
 
-    // Function to set a new daily goal
-    fun setStepGoal(goal: Int) {
+
+    fun setCurrentMovies(movies: List<Movie>) {
+
         _uiState.update {
-                currentState -> currentState.copy(stepGoal = goal)
+                currentState -> currentState.copy(movies = movies)
+        }
+
+    }
+    fun setCurrentMovie(movie: Movie) {
+        viewModelScope.launch {
+            val watched: Boolean = repository.getWatchedFilm(movie.id)
+            _uiState.update { currentState ->
+                currentState.copy(currentMovie = movie, movieWatched = watched)
+            }
         }
     }
 
-    // Function to add a new history entry (e.g., at the end of the day)
-    fun addStepHistoryEntry() {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val newHistory = stepHistory + StepHistory(date = today, steps = _uiState.value.stepCount)
-
-        //update the history
-
-        // Reset the step count at the end of the day and update history
-        resetStepCounter()
+    fun setMovieWatched(movieWatched : Boolean) {
+        _uiState.update {
+                currentState -> currentState.copy(movieWatched = movieWatched)
+        }
+        viewModelScope.launch {
+            repository.setWatchedFilm(_uiState.value.currentMovie.id,movieWatched)
+        }
     }
 
 

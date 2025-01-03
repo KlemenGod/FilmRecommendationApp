@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.filmrecomendationapp.R
-import com.example.filmrecomendationapp.data.stepHistory
 
 data class StepHistory(val date: String, val steps: Int)
 
@@ -28,7 +27,7 @@ data class StepHistory(val date: String, val steps: Int)
 fun HistoryScreen(viewModel: FilmRecomendationViewModel = viewModel(),
                   navController: NavController
 ) {
-
+/*
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(stepHistory) { stepHistory ->
             HistoryItem(stepHistory)
@@ -42,7 +41,7 @@ fun HistoryScreen(viewModel: FilmRecomendationViewModel = viewModel(),
             }
         }
 
-    }
+    }*/
 
 
 }
